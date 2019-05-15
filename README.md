@@ -2,6 +2,16 @@
 
 Here is trivial example how to embed LUA into your C/C++ program.
 
+Thre are implemented 2 custom commands available from LUA:
+
+1. Command `uname_machine()` that returns
+   machine name from [uname(2)](https://manpages.debian.org/stretch/manpages-dev/uname.2.en.html) system call.
+
+1. Command `uptime_seconds()` that returns
+   number of seconds from system start (uptime) from
+   [sysinfo(2)](https://manpages.debian.org/stretch/manpages-dev/sysinfo.2.en.html) system call.
+
+
 > NOTE:
 >
 > There is also [TCL Version](https://github.com/hpaluch-pil/tcl-cpp-example)
