@@ -14,6 +14,14 @@
 // NOTE: C++ must use "lua.hpp", however C must use "lua.h"
 #include <lua.hpp>
 
+
+#define LOCAL_VALIDATE_LUA_STACK \
+	if ( lua_gettop(ls) ){ \
+		fprintf(stderr, "LUA has unbalanced stack before lua_close() call: %d <> %d", \
+				lua_gettop(ls), 0); \
+		return EXIT_FAILURE; \
+	}
+
 // custom command uname -m - returns machine name
 
 /*
@@ -56,17 +64,44 @@ static int UptimeSecondsCmd(
     }
 }
 
-
-
-// add custom commands to Tcl
-static int Ex_ExtendTcl (Tcl_Interp *interp) {
-	Tcl_CreateObjCommand(
-	        interp, "::ex::uname_machine", UnameMachineCmd, NULL, NULL);
-	Tcl_CreateObjCommand(
-	        interp, "::ex::uptime_seconds", UptimeSecondsCmd, NULL, NULL);
-	return TCL_OK;
-}
 */
+
+static int l_uname_machine(lua_State *ls){
+	const char *machineName = "TODO";
+
+	lua_pushstring(ls,machineName);
+	return 1; // number of results
+}
+
+static int l_uptime_seconds(lua_State *ls){
+	// TODO: real uptime
+	long uptimeSeconds = 123L;
+
+	// according to https://stackoverflow.com/a/4079267
+	// sizeof() can't be used in C++ preprocessor
+	if ( sizeof(long) > sizeof(lua_Integer) ){
+		// lua_Number is typically double
+		lua_pushnumber(ls, (lua_Number) uptimeSeconds);
+	} else {
+		lua_pushinteger(ls, (lua_Integer) uptimeSeconds);
+	}
+	return 1; // number of results
+}
+
+static int Ex_ExtendLUA(lua_State *ls){
+
+	lua_pushcfunction(ls, l_uptime_seconds);
+	lua_setglobal(ls, "uptime_seconds");
+
+	LOCAL_VALIDATE_LUA_STACK;
+
+	lua_pushcfunction(ls, l_uname_machine);
+	lua_setglobal(ls, "uname_machine");
+
+	LOCAL_VALIDATE_LUA_STACK;
+
+	return EXIT_SUCCESS;
+}
 
 // reports error on LUA call and show error message from stack.
 // also pops-out error message from stack.
@@ -89,6 +124,10 @@ static int Ex_RunLua(const char *luaCommands){
 	}
 
 	luaL_openlibs(ls);
+
+	if (Ex_ExtendLUA(ls)){
+		goto exit1;
+	}
 
 	err = luaL_loadstring(ls, luaCommands);
 	if (err){
@@ -133,10 +172,10 @@ int main(int argc, char **argv)
 
 	// NOTE: unlike TCL there is no global Init function
 
-	rc = Ex_RunLua("print( 'Hello, world on ' .. 'TODO: uname' .. '!' )");
+	rc = Ex_RunLua("print( 'Hello, world on ' .. uname_machine() .. '!' )");
 
 	if (rc == EXIT_SUCCESS){
-		rc = Ex_RunLua("print('System uptime is ',123,' seconds.')");
+		rc = Ex_RunLua("print('System uptime is ', uptime_seconds() ,' seconds.')");
 	}
 
 	// NOTE: unlike TCL there is no global Finalize function
