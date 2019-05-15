@@ -59,8 +59,9 @@ make valgrind
 
 # Resources
 
-* [http://tylerneylon.com/a/learn-lua/](LUA crash course)
-* [https://www.lua.org/pil/24.1.html](LUA C API - 1st example) - unfortunately
-  a bit outdated...
+* [LUA crash course](http://tylerneylon.com/a/learn-lua/)
+* [LUA C API - 1st example](https://www.lua.org/pil/24.1.html) - unfortunately
+  a bit out-of-date...
+* [Calling C function from LUA](https://www.lua.org/pil/26.1.html)  
 
 
