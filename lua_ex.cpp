@@ -4,6 +4,10 @@
 #include <stdlib.h>
 // printf(3)....
 #include <stdio.h>
+// variable errno
+#include <errno.h>
+// strerror(3)
+#include <string.h>
 
 // uname(2)
 #include <sys/utsname.h>
@@ -67,25 +71,46 @@ static int UptimeSecondsCmd(
 */
 
 static int l_uname_machine(lua_State *ls){
-	const char *machineName = "TODO";
+    struct utsname un;
 
-	lua_pushstring(ls,machineName);
-	return 1; // number of results
+    if (uname(&un)){
+    	char msg[256];
+    	snprintf(msg, sizeof(msg), "Error calling uname(): %s",
+    			strerror(errno));
+    	// reporting error: insert NIL and Error message
+    	lua_pushnil(ls);
+    	lua_pushstring(ls, msg);
+	    return 2;  // number of results
+    } else {
+    	lua_pushstring(ls, un.machine);
+    	return 1; // number of results
+    }
+
 }
 
 static int l_uptime_seconds(lua_State *ls){
-	// TODO: real uptime
-	long uptimeSeconds = 123L;
+	struct sysinfo in;
 
-	// according to https://stackoverflow.com/a/4079267
-	// sizeof() can't be used in C++ preprocessor
-	if ( sizeof(long) > sizeof(lua_Integer) ){
-		// lua_Number is typically double
-		lua_pushnumber(ls, (lua_Number) uptimeSeconds);
+	if (sysinfo(&in)){
+    	char msg[256];
+    	snprintf(msg, sizeof(msg), "Error calling sysinfo(): %s",
+    			strerror(errno));
+    	// reporting error: insert NIL and Error message
+    	lua_pushnil(ls);
+    	lua_pushstring(ls, msg);
+	    return 2;  // number of results
 	} else {
-		lua_pushinteger(ls, (lua_Integer) uptimeSeconds);
+		// according to https://stackoverflow.com/a/4079267
+		// sizeof() can't be used in C++ preprocessor
+		if ( sizeof(in.uptime) > sizeof(lua_Integer) ){
+			// lua_Number is typically double
+			lua_pushnumber(ls, (lua_Number) in.uptime);
+		} else {
+			lua_pushinteger(ls, (lua_Integer) in.uptime);
+		}
+		return 1; // number of results
 	}
-	return 1; // number of results
+
 }
 
 static int Ex_ExtendLUA(lua_State *ls){
@@ -172,7 +197,7 @@ int main(int argc, char **argv)
 
 	// NOTE: unlike TCL there is no global Init function
 
-	rc = Ex_RunLua("print( 'Hello, world on ' .. uname_machine() .. '!' )");
+	rc = Ex_RunLua("print('Hello, world on ' .. uname_machine() .. '!')");
 
 	if (rc == EXIT_SUCCESS){
 		rc = Ex_RunLua("print('System uptime is ', uptime_seconds() ,' seconds.')");
