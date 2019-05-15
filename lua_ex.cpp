@@ -8,10 +8,8 @@
 #include <errno.h>
 // strerror(3)
 #include <string.h>
-
 // uname(2)
 #include <sys/utsname.h>
-
 // sysinfo(2) - uptime
 #include <sys/sysinfo.h>
 
@@ -26,49 +24,6 @@
 		return EXIT_FAILURE; \
 	}
 
-// custom command uname -m - returns machine name
-
-/*
-static int
-UnameMachineCmd(
-    ClientData dummy,
-    Tcl_Interp *interp,
-    int objc,        
-    Tcl_Obj *const objv[])
-{
-    struct utsname un;
-
-    if (uname(&un)){
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf(
-                      "error calling uname(): %s",
-                      Tcl_PosixError(interp)));
-        return TCL_ERROR;
-    } else {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj(un.machine, -1) );
-        return TCL_OK;
-    }
-}
-
-static int UptimeSecondsCmd(
-	    ClientData dummy,
-	    Tcl_Interp *interp,
-	    int objc,
-	    Tcl_Obj *const objv[])
-{
-	struct sysinfo in;
-
-    if (sysinfo(&in)){
-        Tcl_SetObjResult(interp, Tcl_ObjPrintf(
-                      "error calling sysinfo(): %s",
-                      Tcl_PosixError(interp)));
-        return TCL_ERROR;
-    } else {
-        Tcl_SetObjResult(interp, Tcl_NewLongObj(in.uptime) );
-        return TCL_OK;
-    }
-}
-
-*/
 
 static int l_uname_machine(lua_State *ls){
     struct utsname un;
